@@ -1,122 +1,141 @@
 import 'package:flutter/material.dart';
+import 'package:personal_expenses_project/components/chart.dart';
+import 'dart:math';
+import 'package:personal_expenses_project/components/transaction_form.dart';
+import 'package:personal_expenses_project/components/transaction_list.dart';
+import 'package:personal_expenses_project/models/transaction.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ExpensesApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ExpensesApp extends StatelessWidget {
+  ExpensesApp({super.key});
 
-  // This widget is the root of your application.
+  final ThemeData theme = ThemeData();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      home: MyHomePage(),
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        // useMaterial3: false,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          iconTheme: IconThemeData(
+            color: Colors.amber
+          ),
+          titleTextStyle: TextStyle(
+            fontFamily: 'SairaStencilOne',
+            fontSize: 30
+          ),
+        ),
+        textTheme: ThemeData.light().textTheme.copyWith(
+          titleLarge: TextStyle(
+            fontFamily: 'SairaStencilOne',
+            fontSize: 20
+          ),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.white70,
+          primary: Colors.blue,
+          secondary: Colors.amber,
+          onSurface: Colors.black,
+          outline: Colors.blueGrey,
+          surface: Colors.white
+        ),
+        fontFamily: 'NotoSerif'
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  
+  final List<Transaction> _transactions = [
+    Transaction(id: "t1", title: "Comida - Mercado Extrabom", value: 150.255555, date: DateTime.now().subtract(Duration(days: 3))), 
+    Transaction(id: "t2", title: "Corte de Cabelo", value: 50.9999, date: DateTime.now().subtract(Duration(days: 4))), 
+    Transaction(id: "t3", title: "Presente de Natal para Mãe", value: 299, date: DateTime.now().subtract(Duration(days: 5))), 
+    Transaction(id: "t4", title: "Chocolate para afogar as mágoas", value: 15, date: DateTime.now().subtract(Duration(days: 6))), 
+    Transaction(id: "t6", title: "Aluguel Dezembro", value: 1030, date: DateTime.now().subtract(Duration(days: 7))), 
+    Transaction(id: "t7", title: "Presente da Pepe", value: 11.60, date: DateTime.now().subtract(Duration(days: 3))), 
+    Transaction(id: "t8", title: "Presente da Pepe", value: 11.60, date: DateTime.now().subtract(Duration(days: 30))), 
+  ];
 
-  void _incrementCounter() {
+  List<Transaction> get _recentTransactions{
+    return _transactions.where((tr){
+      return tr.date.isAfter(DateTime.now().subtract(
+        Duration(days: 7)));
+      }).toList();
+  }
+
+  void _addTransaction(String title, double value, DateTime date){
+    final newTransaction = Transaction(
+      id: Random().nextDouble().toString(), 
+      title: title, 
+      value: value, 
+      date: date
+      );
+
+      setState(() {
+        _transactions.add(newTransaction);
+      });
+
+      Navigator.of(context).pop(); 
+  }
+
+  void _removeTransaction(String id){
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _transactions.removeWhere((tr) => tr.id == id);
     });
+  }
+
+  dynamic _openTransactionFormModal(BuildContext context){
+    showModalBottomSheet(
+      context: context, 
+      builder: (_){
+        return TransactionForm(onSubmit: _addTransaction);
+      }
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("Despesas Pessoais"),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () => _openTransactionFormModal(context), 
+            icon: Icon(Icons.add)
+          )
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView( // precisa definir o tamanho da tela
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Chart(recentTransactions: _recentTransactions),
+            TransactionList(transactions: _transactions, onRemoved: _removeTransaction),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        foregroundColor: Theme.of(context).colorScheme.surface,
+        onPressed: () => _openTransactionFormModal(context), 
+        child: Icon(Icons.add),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

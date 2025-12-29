@@ -173,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Chart(recentTransactions: _recentTransactions)) ,
             if(!_showChart || !isLandScape) 
               SizedBox(
-                height: availabelHeight * (isLandScape ? 1 : 0.75),
+                height: availabelHeight * (isLandScape ? 1 : 0.70),
                 child: TransactionList(transactions: _transactions, onRemoved: _removeTransaction)),
           ],
         ),
